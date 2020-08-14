@@ -1,7 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from .models import *
-
+from b_account_app.forms import OrderForm
 # Create your views here.
 from django.http import HttpResponse
 
@@ -25,5 +25,38 @@ def products(request):
     context = {'products':products}
     return render(request,"accounts/products.html", context)
 
-def customers(request):
-    return render(request,"accounts/customer.html")
+def customer(request, pk):
+    customer = Customer.objects.get(id=pk)
+    orders_customer = customer.order_set.all()
+    order_count = orders_customer.count()
+    context = {'customer':customer, 
+               "orders_customer":orders_customer,
+               "order_count":order_count}
+    return render(request,"accounts/customer.html", context)
+
+def createOrder(request):
+    form = OrderForm()
+    if request.method == "POST":
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("/")
+    context = {'form':form}
+    return render(request,"accounts/order_form.html", context)
+
+def updateOrder(request, pk):
+    data = Order.objects.get(id=pk)
+    form = OrderForm(instance=data)
+    if request.method == "POST":
+        form = OrderForm(request.POST, instance=data)
+        if form.is_valid():
+            form.save()
+            return redirect("/")
+    context = {'form':form}
+    return render(request,"accounts/order_form.html", context)
+
+def deleteOrder(request, pk):
+    item = Order.objects.get(id=pk)
+    context = {'item':item}
+    return render(request,"accounts/delete_order.html", context)
+    
