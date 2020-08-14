@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect
-
+from django.http import HttpResponse
 from .models import *
 from b_account_app.forms import OrderForm
+from django.forms import inlineformset_factory
+from .filters import OrderFilter
+
 # Create your views here.
-from django.http import HttpResponse
 
 def home(request):
     orders = Order.objects.all() #===> bring the orders
@@ -29,9 +31,12 @@ def customer(request, pk):
     customer = Customer.objects.get(id=pk)
     orders_customer = customer.order_set.all()
     order_count = orders_customer.count()
+    myFilter = OrderFilter(request.GET, queryset=orders_customer)
+    orders_customer = myFilter.qs
     context = {'customer':customer, 
                "orders_customer":orders_customer,
-               "order_count":order_count}
+               "order_count":order_count,
+               "myFilter":myFilter}
     return render(request,"accounts/customer.html", context)
 
 def createOrder(request):
